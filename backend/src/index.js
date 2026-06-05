@@ -17,9 +17,20 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:3000', 'http://127.0.0.1:5500'];
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS === '*' 
+  ? true  // allow all
+  : process.env.ALLOWED_ORIGINS?.split(',') || [];
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
+}));
+
+// const allowedOrigins = process.env.ALLOWED_ORIGINS
+//   ? process.env.ALLOWED_ORIGINS.split(',')
+//   : ['http://localhost:3000', 'http://127.0.0.1:5500'];
 
 app.use(cors({
   origin: (origin, callback) => {
