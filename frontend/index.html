@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="Understand any Solana transaction failure in plain English. Paste your transaction signature and get an instant AI-powered explanation." />
+    <title>SolanaExplain — Decode Any Transaction</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #111118;
+            --surface2: #1a1a24;
+            --border: #2a2a3a;
+            --accent: #14f195;
+            --accent2: #9945ff;
+            --accent3: #00c2ff;
+            --danger: #ff4444;
+            --warning: #ffaa00;
+            --text: #e8e8f0;
+            --text-muted: #6b6b8a;
+            --font-mono: 'Space Mono', monospace;
+            --font-display: 'Syne', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-display);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Background Effects ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 20% 20%, rgba(153, 69, 255, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(20, 241, 149, 0.04) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Grid overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(42, 42, 58, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(42, 42, 58, 0.3) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ── Header ── */
+        header {
+            padding: 48px 0 0;
+            text-align: center;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 48px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text);
+        }
+
+        .logo-text span {
+            color: var(--accent);
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(20, 241, 149, 0.08);
+            border: 1px solid rgba(20, 241, 149, 0.2);
+            border-radius: 100px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            color: var(--accent);
+            margin-bottom: 24px;
+            letter-spacing: 0.5px;
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+
+        h1 {
+            font-size: clamp(36px, 6vw, 64px);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+        }
+
+        h1 .line1 {
+            color: var(--text);
+        }
+
+        h1 .line2 {
+            background: linear-gradient(90deg, var(--accent), var(--accent3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-sub {
+            font-size: 17px;
+            color: var(--text-muted);
+            max-width: 520px;
+            margin: 0 auto 56px;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        /* ── Input Card ── */
+        .input-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .input-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent2), var(--accent), transparent);
+            opacity: 0.6;
+        }
+
+        .input-label {
+            display: block;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        #signature-input {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            min-width: 0;
+        }
+
+        #signature-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        #signature-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(20, 241, 149, 0.08);
+        }
+
+        #signature-input.error {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.08);
+        }
+
+        .submit-btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 24px;
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .submit-btn:hover {
+            background: #0fd980;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(20, 241, 149, 0.25);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .input-hint {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .input-hint a {
+            color: var(--accent3);
+            text-decoration: none;
+        }
+
+        /* ── Loading ── */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 48px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 32px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .loading-steps {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .loading-step {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .loading-step.active {
+            opacity: 1;
+            color: var(--accent);
+        }
+
+        .loading-step.done {
+            opacity: 0.5;
+            color: var(--text-muted);
+        }
+
+        /* ── Result Card ── */
+        .result-card {
+            display: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 32px;
+            animation: fadeUp 0.4s ease;
+        }
+
+        .result-card.active {
+            display: block;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-header {
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.success {
+            background: rgba(20, 241, 149, 0.1);
+            border: 1px solid rgba(20, 241, 149, 0.3);
+            color: var(--accent);
+        }
+
+        .status-badge.failed {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            color: var(--danger);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .result-sig {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            background: var(--surface2);
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .result-sig:hover {
+            color: var(--accent3);
+        }
+
+        /* ── Stats Row ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat-item {
+            padding: 16px 24px;
+            border-right: 1px solid var(--border);
+        }
+
+        .stat-item:last-child {
+            border-right: none;
+        }
+
+        .stat-label {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        /* ── Explanation ── */
+        .explanation-body {
+            padding: 28px;
+        }
+
+        .explanation-title {
+            font-size: 11px;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .explanation-content {
+            font-size: 15px;
+            line-height: 1.75;
+            color: var(--text);
+        }
+
+        .explanation-content strong,
+        .explanation-content b {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .explanation-content p {
+            margin-bottom: 12px;
+        }
+
+        /* ── Balance Changes ── */
+        .balance-section {
+            padding: 0 28px 28px;
+        }
+
+        .balance-title {
+            font-size: 11px;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .balance-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .balance-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface2);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+
+        .balance-account {
+            color: var(--text-muted);
+        }
+
+        .balance-change {
+            font-weight: 700;
+        }
+
+        .balance-change.positive {
+            color: var(--accent);
+        }
+
+        .balance-change.negative {
+            color: var(--danger);
+        }
+
+        /* ── Raw Error ── */
+        .raw-error {
+            margin: 0 28px 28px;
+            background: rgba(255, 68, 68, 0.05);
+            border: 1px solid rgba(255, 68, 68, 0.15);
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .raw-error-label {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--danger);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .raw-error-value {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+            word-break: break-all;
+        }
+
+        /* ── Error Card ── */
+        .error-card {
+            display: none;
+            background: rgba(255, 68, 68, 0.05);
+            border: 1px solid rgba(255, 68, 68, 0.2);
+            border-radius: 16px;
+            padding: 20px 20px;
+            margin-bottom: 32px;
+            animation: fadeUp 0.3s ease;
+            overflow: hidden;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .error-card.active {
+            display: block;
+        }
+
+        .error-card-title {
+            font-weight: 700;
+            color: var(--danger);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+        }
+
+        .error-card-msg {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .error-suggestion {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 68, 68, 0.15);
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* ── Examples ── */
+        .examples-section {
+            margin-bottom: 48px;
+        }
+
+        .examples-title {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .example-chip {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .example-chip:hover {
+            border-color: var(--accent2);
+            background: rgba(153, 69, 255, 0.05);
+        }
+
+        .example-chip-icon {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .example-chip-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .example-chip-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        /* ── Footer ── */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 32px 0;
+            text-align: center;
+        }
+
+        .footer-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .footer-text a {
+            color: var(--accent3);
+            text-decoration: none;
+        }
+
+        /* ── Copy Button ── */
+        .copy-btn {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+
+            /* Container */
+            .container {
+                padding: 0 16px;
+            }
+
+            /* Header */
+            header {
+                padding: 32px 0 0;
+            }
+
+            .logo {
+                margin-bottom: 32px;
+            }
+
+            h1 {
+                letter-spacing: -1px;
+                margin-bottom: 16px;
+            }
+
+            .hero-sub {
+                font-size: 15px;
+                margin-bottom: 40px;
+            }
+
+            .hero-badge {
+                font-size: 10px;
+                padding: 5px 12px;
+            }
+
+            /* Input */
+            .input-card {
+                padding: 20px 16px;
+                margin-bottom: 20px;
+            }
+
+            .input-wrapper {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .submit-btn {
+                width: 100%;
+                justify-content: center;
+                padding: 14px;
+            }
+
+            #signature-input {
+                font-size: 12px;
+                padding: 13px 14px;
+            }
+
+            /* Loading */
+            .loading {
+                padding: 32px 16px;
+            }
+
+            /* Result */
+            .result-header {
+                padding: 16px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            /* Stats */
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat-item {
+                padding: 12px 16px;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .stat-item:nth-child(2n) {
+                border-right: none;
+            }
+
+            .stat-item:nth-last-child(-n+2) {
+                border-bottom: none;
+            }
+
+            .stat-value {
+                font-size: 12px;
+            }
+
+            /* Explanation */
+            .explanation-body {
+                padding: 20px 16px;
+            }
+
+            .explanation-content {
+                font-size: 14px;
+            }
+
+            /* Balance */
+            .balance-section {
+                padding: 0 16px 20px;
+            }
+
+            .balance-item {
+                font-size: 11px;
+                padding: 8px 12px;
+            }
+
+            .balance-account {
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            /* Raw error */
+            .raw-error {
+                margin: 0 16px 20px;
+            }
+
+            .raw-error-value {
+                font-size: 11px;
+                word-break: break-all;
+            }
+
+            /* Error card */
+            .error-card {
+                padding: 16px;
+            }
+
+            .error-card-msg {
+                font-size: 12px;
+            }
+
+            /* Examples */
+            .examples-section {
+                margin-bottom: 32px;
+            }
+
+            .examples-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+
+            .example-chip {
+                padding: 12px;
+            }
+
+            .example-chip-icon {
+                font-size: 18px;
+                margin-bottom: 6px;
+            }
+
+            .example-chip-label {
+                font-size: 12px;
+            }
+
+            .example-chip-desc {
+                font-size: 10px;
+            }
+
+            /* Footer */
+            footer {
+                padding: 24px 0;
+            }
+
+            .footer-text {
+                font-size: 11px;
+                line-height: 1.8;
+            }
+
+            /* Signature display */
+            .result-sig {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">⚡</div>
+                <span class="logo-text">Solana<span>Explain</span></span>
+            </div>
+
+            <div class="hero-badge">AI-POWERED TRANSACTION DECODER</div>
+
+            <h1>
+                <div class="line1">Stop guessing why your</div>
+                <div class="line2">transaction failed.</div>
+            </h1>
+
+            <p class="hero-sub">
+                Paste any Solana transaction signature and get a plain-English explanation of what happened, why it
+                failed, and exactly how to fix it.
+            </p>
+        </header>
+
+        <!-- Input Card -->
+        <div class="input-card">
+            <label class="input-label" for="signature-input">Transaction Signature</label>
+            <div class="input-wrapper">
+                <input id="signature-input" type="text" placeholder="5KtaEbMpP4jQnXxJsHbXqF9mNvLwYcRdZeP2..."
+                    autocomplete="off" spellcheck="false" />
+                <button class="submit-btn" id="submit-btn" onclick="explainTransaction()">
+                    <span>Explain</span>
+                    <span>→</span>
+                </button>
+            </div>
+            <p class="input-hint">
+                Find your signature on <a href="https://solscan.io" target="_blank">Solscan</a> or <a
+                    href="https://explorer.solana.com" target="_blank">Solana Explorer</a>
+            </p>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Analyzing your transaction...</div>
+            <div class="loading-steps">
+                <div class="loading-step" id="step1">▸ Fetching transaction from Solana</div>
+                <div class="loading-step" id="step2">▸ Decoding error codes</div>
+                <div class="loading-step" id="step3">▸ Running AI analysis</div>
+                <div class="loading-step" id="step4">▸ Generating explanation</div>
+            </div>
+        </div>
+
+        <!-- Error Card -->
+        <div class="error-card" id="error-card">
+            <div class="error-card-title">⚠ Error</div>
+            <div class="error-card-msg" id="error-msg"></div>
+            <div class="error-suggestion" id="error-suggestion"></div>
+        </div>
+
+        <!-- Result Card -->
+        <div class="result-card" id="result-card">
+            <div class="result-header">
+                <div class="status-badge" id="status-badge">
+                    <div class="status-dot"></div>
+                    <span id="status-text">SUCCESS</span>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <span class="result-sig" id="result-sig" onclick="copySignature()"></span>
+                    <button class="copy-btn" onclick="copySignature()">Copy</button>
+                </div>
+            </div>
+
+            <div class="stats-row" id="stats-row">
+                <div class="stat-item">
+                    <div class="stat-label">Timestamp</div>
+                    <div class="stat-value" id="stat-time">—</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Fee Paid</div>
+                    <div class="stat-value" id="stat-fee">—</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Compute Units</div>
+                    <div class="stat-value" id="stat-compute">—</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Slot</div>
+                    <div class="stat-value" id="stat-slot">—</div>
+                </div>
+            </div>
+
+            <div class="explanation-body">
+                <div class="explanation-title">AI Explanation</div>
+                <div class="explanation-content" id="explanation-content"></div>
+            </div>
+
+            <div class="balance-section" id="balance-section" style="display:none">
+                <div class="balance-title">Balance Changes</div>
+                <div class="balance-list" id="balance-list"></div>
+            </div>
+
+            <div class="raw-error" id="raw-error" style="display:none">
+                <div class="raw-error-label">Raw Error Code</div>
+                <div class="raw-error-value" id="raw-error-value"></div>
+            </div>
+        </div>
+
+        <!-- Examples -->
+        <div class="examples-section">
+            <div class="examples-title">Common Transaction Types</div>
+            <div class="examples-grid">
+                <div class="example-chip" onclick="setExample('swap')">
+                    <div class="example-chip-icon">🔄</div>
+                    <div class="example-chip-label">Swap Failed</div>
+                    <div class="example-chip-desc">Slippage / liquidity issues</div>
+                </div>
+                <div class="example-chip" onclick="setExample('transfer')">
+                    <div class="example-chip-icon">💸</div>
+                    <div class="example-chip-label">Transfer Failed</div>
+                    <div class="example-chip-desc">Insufficient balance</div>
+                </div>
+                <div class="example-chip" onclick="setExample('nft')">
+                    <div class="example-chip-icon">🖼️</div>
+                    <div class="example-chip-label">NFT Mint/Buy</div>
+                    <div class="example-chip-desc">Minting or marketplace errors</div>
+                </div>
+                <div class="example-chip" onclick="setExample('defi')">
+                    <div class="example-chip-icon">🏦</div>
+                    <div class="example-chip-label">DeFi Protocol</div>
+                    <div class="example-chip-desc">Lending, staking, farming</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p class="footer-text">
+                Built on <a href="https://solana.com" target="_blank">Solana</a> ·
+                Powered by <a href="https://deepmind.google/technologies/gemini/" target="_blank">Gemini AI</a> ·
+                Data via <a href="https://helius.dev" target="_blank">Helius</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api/explain';
+        let currentSignature = '';
+
+        // ── Loading Steps Animation ──
+        function animateLoadingSteps() {
+            const steps = ['step1', 'step2', 'step3', 'step4'];
+            const delays = [0, 800, 1600, 2400];
+
+            steps.forEach((id, i) => {
+                setTimeout(() => {
+                    // Mark previous as done
+                    if (i > 0) {
+                        document.getElementById(steps[i - 1]).classList.remove('active');
+                        document.getElementById(steps[i - 1]).classList.add('done');
+                    }
+                    document.getElementById(id).classList.add('active');
+                }, delays[i]);
+            });
+        }
+
+        // ── Main Explain Function ──
+        async function explainTransaction() {
+            const input = document.getElementById('signature-input');
+            const signature = input.value.trim();
+
+            // Validate
+            if (!signature) {
+                input.classList.add('error');
+                setTimeout(() => input.classList.remove('error'), 2000);
+                return;
+            }
+
+            if (!/^[1-9A-HJ-NP-Za-km-z]{87,88}$/.test(signature)) {
+                showError('Invalid signature format', 'A Solana transaction signature is 87-88 characters long and contains only Base58 characters.');
+                input.classList.add('error');
+                setTimeout(() => input.classList.remove('error'), 2000);
+                return;
+            }
+
+            currentSignature = signature;
+
+            // Show loading
+            hideAll();
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('submit-btn').disabled = true;
+            animateLoadingSteps();
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ signature }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw { message: data.error, suggestion: data.suggestion };
+                }
+
+                displayResult(data);
+            } catch (err) {
+                // Clean up raw API error messages
+                let message = err.message || 'Failed to analyze transaction';
+                let suggestion = err.suggestion || 'Please check your connection and try again.';
+
+                // Shorten long AI error messages
+                if (message.length > 120) {
+                    message = 'AI analysis temporarily unavailable.';
+                    suggestion = 'Please try again in a few seconds.';
+                }
+
+                showError(message, suggestion);
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('submit-btn').disabled = false;
+
+                // Reset loading steps
+                ['step1', 'step2', 'step3', 'step4'].forEach(id => {
+                    const el = document.getElementById(id);
+                    el.classList.remove('active', 'done');
+                });
+            }
+        }
+
+        // ── Display Result ──
+        function displayResult(data) {
+            // Status badge
+            const badge = document.getElementById('status-badge');
+            const statusText = document.getElementById('status-text');
+            badge.className = `status-badge ${data.status}`;
+            statusText.textContent = data.status.toUpperCase();
+
+            // Signature
+            const sigEl = document.getElementById('result-sig');
+            sigEl.textContent = `${data.signature.slice(0, 8)}...${data.signature.slice(-8)}`;
+
+            // Stats
+            document.getElementById('stat-time').textContent = data.timestamp
+                ? new Date(data.timestamp).toLocaleString()
+                : '—';
+            document.getElementById('stat-fee').textContent = data.fee
+                ? `${data.fee} SOL`
+                : '—';
+            document.getElementById('stat-compute').textContent = data.computeUnitsConsumed
+                ? data.computeUnitsConsumed.toLocaleString()
+                : '—';
+            document.getElementById('stat-slot').textContent = data.slot
+                ? `#${data.slot.toLocaleString()}`
+                : '—';
+
+            // Explanation — convert markdown-style bold to HTML
+            const explanation = data.explanation
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+
+            document.getElementById('explanation-content').innerHTML = `<p>${explanation}</p>`;
+
+            // Balance changes
+            if (data.balanceChanges && data.balanceChanges.length > 0) {
+                const section = document.getElementById('balance-section');
+                const list = document.getElementById('balance-list');
+                section.style.display = 'block';
+                list.innerHTML = data.balanceChanges.map(b => `
+          <div class="balance-item">
+            <span class="balance-account">${b.account.slice(0, 8)}...${b.account.slice(-8)}</span>
+            <span class="balance-change ${b.change > 0 ? 'positive' : 'negative'}">
+              ${b.change > 0 ? '+' : ''}${b.change.toFixed(6)} SOL
+            </span>
+          </div>
+        `).join('');
+            }
+
+            // Raw error
+            if (data.rawError) {
+                const rawEl = document.getElementById('raw-error');
+                rawEl.style.display = 'block';
+                document.getElementById('raw-error-value').textContent = JSON.stringify(data.rawError, null, 2);
+            }
+
+            document.getElementById('result-card').classList.add('active');
+        }
+
+        // ── Show Error ──
+        function showError(message, suggestion) {
+            hideAll();
+            document.getElementById('error-msg').textContent = message;
+            const suggEl = document.getElementById('error-suggestion');
+            if (suggestion) {
+                suggEl.textContent = `💡 ${suggestion}`;
+                suggEl.style.display = 'block';
+            } else {
+                suggEl.style.display = 'none';
+            }
+            document.getElementById('error-card').classList.add('active');
+        }
+
+        // ── Hide All Result Areas ──
+        function hideAll() {
+            document.getElementById('result-card').classList.remove('active');
+            document.getElementById('error-card').classList.remove('active');
+            document.getElementById('loading').classList.remove('active');
+            document.getElementById('balance-section').style.display = 'none';
+            document.getElementById('raw-error').style.display = 'none';
+        }
+
+        // ── Copy Signature ──
+        function copySignature() {
+            if (currentSignature) {
+                navigator.clipboard.writeText(currentSignature).then(() => {
+                    const btn = document.querySelector('.copy-btn');
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => btn.textContent = 'Copy', 2000);
+                });
+            }
+        }
+
+        // ── Example Hints ──
+        const exampleHints = {
+            swap: 'Paste a failed Jupiter or Raydium swap signature here',
+            transfer: 'Paste a failed SOL or SPL token transfer signature here',
+            nft: 'Paste a failed NFT mint or purchase signature here',
+            defi: 'Paste a failed Kamino, MarginFi or Orca transaction here',
+        };
+
+        function setExample(type) {
+            const input = document.getElementById('signature-input');
+            input.placeholder = exampleHints[type];
+            input.focus();
+        }
+
+        // ── Enter Key Support ──
+        document.getElementById('signature-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') explainTransaction();
+        });
+
+        // ── Paste Support ──
+        document.getElementById('signature-input').addEventListener('paste', () => {
+            setTimeout(() => {
+                const val = document.getElementById('signature-input').value.trim();
+                if (/^[1-9A-HJ-NP-Za-km-z]{87,88}$/.test(val)) {
+                    explainTransaction();
+                }
+            }, 50);
+        });
+    </script>
+</body>
+
+</html>
